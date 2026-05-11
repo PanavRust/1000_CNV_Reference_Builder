@@ -1,0 +1,26 @@
+# CRAM / CRAI
+*.cram
+*.crai
+
+# Logs
+*.log
+logs/
+
+# QC output
+coverage_summary.tsv
+
+# Temporary files
+*.tmp
+*.swp
+*.bak
+
+# IDE
+.vscode/
+.idea/
+
+# nohup
+nohup.out
+
+# Downloaded datasets
+cnv_baseline/
+output/
