@@ -1,77 +1,57 @@
-# 1000G-CNV-Reference-Builder
+# 1000G CNV Reference Builder
 
-Automated workflow for constructing a **high-quality whole genome sequencing (WGS) reference cohort** from the **1000 Genomes Project high-coverage (30×) GRCh38 dataset** for **copy number variation (CNV) baseline generation**.
+🧬 Automated workflow for constructing a **high-quality WGS reference cohort** from the **1000 Genomes Project high-coverage (~30×) GRCh38 dataset** for **copy number variation (CNV) baseline generation**.
 
-This project was developed to create a robust **Panel of Normals (PoN)** suitable for **CNVkit** and other read-depth–based CNV callers by downloading, filtering, and quality-controlling unrelated high-coverage genomes.
+This project provides a reproducible workflow to download, batch-process, and quality-control unrelated high-coverage genomes for building a **Panel of Normals (PoN)** suitable for **CNVkit** and other read-depth–based CNV callers.
 
----
-
-## Overview
-
-Read-depth–based CNV callers such as **CNVkit** rely heavily on a high-quality reference baseline to normalize sequencing noise and improve CNV detection accuracy.
-
-This repository automates:
-
-- Selection of **unrelated founder samples**
-- Download of **30× WGS CRAM files**
-- Resume-safe downloading from **1000 Genomes high coverage release**
-- Batch-based downloads for scalability
-- Coverage quality control (QC)
-- Preparation for downstream **CNV reference generation**
+Designed as a **portfolio-ready bioinformatics utility** inspired by real-world genomics workflows used in research and clinical sequencing environments.
 
 ---
 
-## Why This Exists
+## 📌 Overview
 
-The original **1000 Genomes Phase 3 release** contains mostly **low-coverage (~4×) genomes**, which are not ideal for read-depth–based CNV reference construction.
+Read-depth–based CNV detection tools require a robust reference baseline to reduce sequencing noise and improve copy number calling accuracy.
 
-This workflow instead uses the:
+This workflow automates:
 
-> **1000 Genomes 2504 high-coverage (~30×) GRCh38 release**
-
-to improve:
-
-- Coverage consistency
-- CNV signal stability
-- Noise reduction
-- Reference normalization quality
-
-for downstream CNV analysis.
+✅ Selection of **unrelated founder genomes**  
+✅ Download of **1000 Genomes high-coverage (~30×) WGS CRAM files**  
+✅ Batch-based downloading for reproducibility  
+✅ Coverage quality control (QC)  
+✅ Preparation for downstream **CNV reference generation**
 
 ---
 
-## Dataset Used
-
-### Source
-**1000 Genomes Project – High Coverage Release (2504 samples)**
-
-- Genome build: **GRCh38**
-- Sequencing depth: **~30× WGS**
-- Platform: **Illumina NovaSeq 6000**
-- Alignment format: **CRAM**
-
-### Selection Criteria
-
-Samples are filtered to include:
-
-- **Founder/unrelated individuals**
-- **High-coverage (~30×) genomes**
-- **GRCh38-aligned WGS**
-- Consistent sequencing characteristics
-
-Related samples are excluded to reduce inherited CNV enrichment within the reference cohort.
-
----
-
-## Repository Structure
+## ⚙️ Workflow
 
 ```text
-1000G-CNV-Reference-Builder/
+1000 Genomes High Coverage (2504)
+                ↓
+Founder / Unrelated Sample Selection
+                ↓
+Random Sample Selection
+                ↓
+Batch Generation
+                ↓
+CRAM + CRAI Download
+                ↓
+Coverage Quality Control
+                ↓
+Reference Cohort Selection
+                ↓
+CNVkit Reference Generation
+```
+
+---
+
+## 🧩 Repository Structure
+
+```text
+1000G-CNV-Reference-Builder
 │
-├── scripts/
-│   ├── download_1000G_crams.sh
-│   ├── make_batches.sh
-│   └── coverage_qc.sh
+├── download_1000G_crams.sh
+├── make_batches.sh
+├── coverage_qc.sh
 │
 ├── example/
 │   ├── sample_ids.txt
@@ -79,17 +59,28 @@ Related samples are excluded to reduce inherited CNV enrichment within the refer
 │
 ├── logs/
 │
-├── README.md
-└── .gitignore
+└── README.md
 ```
 
 ---
 
-## Workflow
+## 🛠️ Tools & Technologies
 
-### Step 1 — Generate Unrelated Sample List
+- Bash / Linux
+- wget
+- samtools
+- awk
+- 1000 Genomes Project
+- ENA FTP
+- CNVkit
+- CRAM / CRAI
+- WGS Data Processing
 
-Founder samples are extracted from pedigree metadata:
+---
+
+## ▶️ Running the Workflow
+
+### Step 1 — Generate founder sample IDs
 
 ```bash
 awk 'NR>1 && $2==0 && $3==0 {print $1}' \
@@ -97,64 +88,42 @@ awk 'NR>1 && $2==0 && $3==0 {print $1}' \
 > unrelated_ids.txt
 ```
 
-This keeps only samples where:
-
-- `fatherID = 0`
-- `motherID = 0`
-
-indicating unrelated founder individuals.
-
 ---
 
-### Step 2 — Select Candidate Samples
-
-Randomly select samples for reference construction:
+### Step 2 — Randomly select samples
 
 ```bash
 shuf unrelated_ids.txt | head -40 > sample_ids.txt
 ```
 
-Recommended strategy:
-
-- Download **50 candidate genomes**
-- Retain the **best 30–40 samples**
-- Filter using sequencing coverage QC
-
 ---
 
-### Step 3 — Create Download Batches
+### Step 3 — Generate download batches
 
-Samples are downloaded in batches to:
+```bash
+./make_batches.sh
+```
 
-- Reduce failed transfers
-- Enable quality control between downloads
-- Improve reproducibility
-
-Example:
+Example output:
 
 ```text
-batch1.txt → samples 1–5
-batch2.txt → samples 6–10
-batch3.txt → samples 11–15
+batch1.txt
+batch2.txt
+batch3.txt
 ```
 
 ---
 
-### Step 4 — Download CRAM Files
-
-Run downloader:
+### Step 4 — Download CRAM files
 
 ```bash
-./download_1000G_crams.sh \
--i sample_ids.txt \
--s 1000G_2504_high_coverage.sequence.index \
--o output_directory
+./download_1000G_crams.sh
 ```
 
 Features:
 
-- Resume-safe (`wget -c`)
-- Automatic CRAM URL discovery
+- Resume-safe downloading (`wget -c`)
+- Automatic CRAM URL extraction
 - CRAI index download
 - Integrity checking
 - Failure logging
@@ -163,93 +132,55 @@ Features:
 
 ### Step 5 — Coverage QC
 
-Coverage consistency is critical for CNV normalization.
-
-Estimate mean genome coverage:
+Estimate average genome coverage:
 
 ```bash
 samtools depth -a sample.cram | \
 awk '{sum+=$3} END {print sum/NR}'
 ```
 
-Recommended threshold:
+Recommended coverage range:
 
 ```text
 28×–35×
 ```
 
-Exclude low-coverage outliers.
+---
+
+## 📊 Outputs
+
+The workflow generates:
+
+- High-coverage WGS **CRAM files**
+- CRAI index files
+- Download logs
+- Coverage QC summaries
+- Candidate reference cohort for CNV analysis
 
 ---
 
-## Example Use Case
+## 🎯 Skills Demonstrated
 
-This repository was developed for generation of a **CNVkit Panel of Normals (PoN)** using:
-
-- **40 unrelated WGS samples**
-- **1000 Genomes high-coverage release**
-- **GRCh38**
-- **~30× coverage**
-
-to improve read-depth normalization and reduce false-positive CNV calls.
-
----
-
-## Recommended Downstream Workflow
-
-After download and QC:
-
-### CNVkit reference generation
-
-```bash
-cnvkit.py batch *.cram \
---normal \
---fasta reference.fa \
---method wgs \
---output-reference reference.cnn
-```
+- Public genomics data acquisition
+- Large-scale WGS data handling
+- Bash scripting & workflow automation
+- QC-driven cohort selection
+- Reproducible bioinformatics workflows
+- CNV reference cohort generation
+- Linux & HPC workflow management
 
 ---
 
-## Limitations
+## ⚠️ Disclaimer
 
-- Download speed depends on ENA/EBI FTP performance
-- Public datasets may contain minor sequencing variability
-- Coverage should be validated before reference generation
-- Reference quality strongly impacts CNV calling accuracy
+This workflow is intended for **research and educational purposes** and demonstrates a reproducible strategy for generating a CNV reference cohort from public WGS datasets.
 
----
-
-## Future Improvements
-
-Planned features:
-
-- Parallelized downloads
-- Automatic coverage filtering
-- Metadata-aware population balancing
-- Direct CNVkit `.cnn` generation
-- Multi-threaded integrity checks
+It is **not intended for direct clinical use**.
 
 ---
 
-## Citation
+## 👨‍💻 Author
 
-If using this workflow, please cite:
-
-### 1000 Genomes Project
-
-The 1000 Genomes Project Consortium.  
-*A global reference for human genetic variation.*  
-Nature, 2015.
-
-### CNVkit
-
-Talevich E, et al.  
-**CNVkit: Genome-Wide Copy Number Detection and Visualization from Targeted DNA Sequencing**  
-PLoS Computational Biology, 2016.
-
----
-
-## License
-
-MIT License
+**Panav Rustagi**  
+Bioinformatics Graduate — University of Bristol  
+Experience in **NGS pipelines, genomic analysis, and bioinformatics workflow development**
