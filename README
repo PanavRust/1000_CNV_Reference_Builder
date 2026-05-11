@@ -1,31 +1,25 @@
-# 1000G CNV Reference Builder
+![Bash](https://img.shields.io/badge/Bash-Scripting-green)
+![WGS](https://img.shields.io/badge/WGS-30x-blue)
+![Genome](https://img.shields.io/badge/Genome-GRCh38-orange)
+![CNV](https://img.shields.io/badge/CNV-CNVkit-purple)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
 
-🧬 Automated workflow for constructing a **high-quality WGS reference cohort** from the **1000 Genomes Project high-coverage (~30×) GRCh38 dataset** for **copy number variation (CNV) baseline generation**.
-
-This project provides a reproducible workflow to download, batch-process, and quality-control unrelated high-coverage genomes for building a **Panel of Normals (PoN)** suitable for **CNVkit** and other read-depth–based CNV callers.
-
-Designed as a **portfolio-ready bioinformatics utility** inspired by real-world genomics workflows used in research and clinical sequencing environments.
-
----
+# 🧬 1000G CNV Reference Builder
 
 ## 📌 Overview
 
-Read-depth–based CNV detection tools require a robust reference baseline to reduce sequencing noise and improve copy number calling accuracy.
+This repository contains a reproducible bioinformatics workflow for constructing a **high-quality Whole Genome Sequencing (WGS) CNV reference cohort** using the **1000 Genomes Project high-coverage (~30×) GRCh38 dataset**.
 
-This workflow automates:
+The workflow demonstrates practical handling of large-scale public genomic datasets including **sample selection, CRAM acquisition, batch processing, quality control, and reference cohort preparation** for downstream **copy number variation (CNV)** analysis.
 
-✅ Selection of **unrelated founder genomes**  
-✅ Download of **1000 Genomes high-coverage (~30×) WGS CRAM files**  
-✅ Batch-based downloading for reproducibility  
-✅ Coverage quality control (QC)  
-✅ Preparation for downstream **CNV reference generation**
+This project is designed as a **portfolio-ready implementation** inspired by real-world genomics workflows used in research and clinical sequencing environments.
 
 ---
 
 ## ⚙️ Workflow
 
 ```text
-1000 Genomes High Coverage (2504)
+1000 Genomes High Coverage Dataset
                 ↓
 Founder / Unrelated Sample Selection
                 ↓
@@ -39,12 +33,12 @@ Coverage Quality Control
                 ↓
 Reference Cohort Selection
                 ↓
-CNVkit Reference Generation
+CNVkit Panel of Normals (PoN)
 ```
 
 ---
 
-## 🧩 Repository Structure
+## 🧩 Repository Architecture
 
 ```text
 1000G-CNV-Reference-Builder
@@ -53,22 +47,24 @@ CNVkit Reference Generation
 ├── make_batches.sh
 ├── coverage_qc.sh
 │
-├── example/
+├── example
 │   ├── sample_ids.txt
 │   └── batch1.txt
 │
-├── logs/
+├── logs
 │
 └── README.md
 ```
+
+The workflow is implemented using modular Bash scripts to enable reproducibility and scalability for large WGS datasets.
 
 ---
 
 ## 🛠️ Tools & Technologies
 
 - Bash / Linux
-- wget
 - samtools
+- wget
 - awk
 - 1000 Genomes Project
 - ENA FTP
@@ -80,7 +76,7 @@ CNVkit Reference Generation
 
 ## ▶️ Running the Workflow
 
-### Step 1 — Generate founder sample IDs
+### Step 1 — Generate Founder Sample IDs
 
 ```bash
 awk 'NR>1 && $2==0 && $3==0 {print $1}' \
@@ -90,7 +86,7 @@ awk 'NR>1 && $2==0 && $3==0 {print $1}' \
 
 ---
 
-### Step 2 — Randomly select samples
+### Step 2 — Select Samples
 
 ```bash
 shuf unrelated_ids.txt | head -40 > sample_ids.txt
@@ -98,7 +94,7 @@ shuf unrelated_ids.txt | head -40 > sample_ids.txt
 
 ---
 
-### Step 3 — Generate download batches
+### Step 3 — Create Download Batches
 
 ```bash
 ./make_batches.sh
@@ -114,32 +110,32 @@ batch3.txt
 
 ---
 
-### Step 4 — Download CRAM files
+### Step 4 — Download CRAM Files
 
 ```bash
 ./download_1000G_crams.sh
 ```
 
-Features:
+The workflow supports:
 
-- Resume-safe downloading (`wget -c`)
+- Resume-safe downloading
 - Automatic CRAM URL extraction
-- CRAI index download
-- Integrity checking
+- CRAI index downloading
+- Integrity checks
 - Failure logging
 
 ---
 
 ### Step 5 — Coverage QC
 
-Estimate average genome coverage:
+Estimate average sequencing coverage:
 
 ```bash
 samtools depth -a sample.cram | \
 awk '{sum+=$3} END {print sum/NR}'
 ```
 
-Recommended coverage range:
+Recommended coverage threshold:
 
 ```text
 28×–35×
@@ -151,36 +147,38 @@ Recommended coverage range:
 
 The workflow generates:
 
-- High-coverage WGS **CRAM files**
+- High-coverage WGS CRAM files
 - CRAI index files
 - Download logs
 - Coverage QC summaries
-- Candidate reference cohort for CNV analysis
+- Candidate CNV reference cohort
 
 ---
 
 ## 🎯 Skills Demonstrated
 
-- Public genomics data acquisition
-- Large-scale WGS data handling
-- Bash scripting & workflow automation
-- QC-driven cohort selection
+- Public genomic data acquisition
+- WGS data handling
+- Bash scripting & automation
+- Large-scale genomic data management
+- Quality control (QC)
 - Reproducible bioinformatics workflows
 - CNV reference cohort generation
-- Linux & HPC workflow management
+- Linux / HPC workflow management
 
 ---
 
 ## ⚠️ Disclaimer
 
-This workflow is intended for **research and educational purposes** and demonstrates a reproducible strategy for generating a CNV reference cohort from public WGS datasets.
+This workflow is intended for **research and educational purposes** and demonstrates a reproducible approach for constructing a CNV reference cohort using public WGS datasets.
 
-It is **not intended for direct clinical use**.
+It is **not intended for clinical use**.
 
 ---
 
 ## 👨‍💻 Author
 
 **Panav Rustagi**  
-Bioinformatics Graduate — University of Bristol  
-Experience in **NGS pipelines, genomic analysis, and bioinformatics workflow development**
+Bioinformatics Graduate – University of Bristol  
+
+Experience in **genomic data analysis, NGS pipelines, and bioinformatics workflow development**
